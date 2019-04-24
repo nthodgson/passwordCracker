@@ -5,6 +5,10 @@ Spring of 2019
 Programmer:
 Nathan Hodgson
 
+### Note
+
+This program is still in progress. 
+
 ### Program Description
 
 Given a hashed password, this program uses multithreading to brute force hundreds of thousands of different password hashes and compares them to the hash given to try and find a match. 
