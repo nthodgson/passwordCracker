@@ -13,9 +13,10 @@
 
 // Declare global buffer struct
 
+//static int BSIZE = 1000;
 
 struct globalBuffer {
-    //char buf[SIZE];
+    char buf[10000][50];
     int occupied;
     int nextin;
     int nextout;
