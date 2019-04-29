@@ -1,13 +1,12 @@
 #include "producer.h"
 #include "consumer.h"
-#include "global.h"
 
 // Programmer: Nathan Hodgson
 // Program: producer.c
 
-void readFile(char dictName[]) {
+void readFile(char dictName[], globalBuffer *b) {
 	char buffer[100][50];
-	int ret = 0, i = 1;
+	int ret = 0, i = 0;
 
 	FILE* infile;
 	infile = fopen(dictName, "r");
@@ -18,9 +17,11 @@ void readFile(char dictName[]) {
 	}
 	else {
 		ret = fscanf(infile, "%s", buffer[0]);
-		while (ret == 1 && !feof(infile) && i < 100) {
-			ret = fscanf(infile, "%s", buffer[i]);
+		while (ret == 1 && !feof(infile)) {
 			i++;
+			ret = fscanf(infile, "%s", buffer[i]);
+			if (i % 100 == 0)
+				writeToBuffer(buffer, &b);
 		}
 	}
 
@@ -28,7 +29,8 @@ void readFile(char dictName[]) {
 	return;
 }
 
-void writeToBuffer() {
+void writeToBuffer(char buffer[100][50], globalBuffer *b) {
+
 
 	return;
 }
