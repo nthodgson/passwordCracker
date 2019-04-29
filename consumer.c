@@ -1,6 +1,5 @@
 #include "producer.h"
 #include "consumer.h"
-#include "global.h"
 
 // Programmer: Nathan Hodgson
 // Program: consumer.c
