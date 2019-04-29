@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <pthread.h>
+#include "sha-256.h"
 
 // Programmer: Nathan Hodgson
 // Program: producer.h

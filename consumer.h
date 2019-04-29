@@ -8,4 +8,4 @@ struct consumerThread {
 
 };
 
-void getWord(char word[]);
+void getWord(char word[], char hash[]);

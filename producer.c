@@ -24,8 +24,6 @@ void readFile(char dictName[]) {
 		}
 	}
 
-	getWord(buffer[0]);
-
 	fclose(infile);
 	return;
 }
