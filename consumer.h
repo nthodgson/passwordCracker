@@ -1,3 +1,9 @@
+#ifndef __GLOBAL_H_
+#define __GLOBAL_H_
+
+#ifndef __CONSUMER_H_
+#define __CONSUMER_H_
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -17,4 +23,6 @@ struct consumerThread {
 
 };
 
-void getWord(char word[], char hash[]);
+void checkWord(char word[], char hash[]);
+
+#endif

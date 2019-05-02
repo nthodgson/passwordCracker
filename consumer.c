@@ -1,18 +1,20 @@
-#include "producer.h"
+#include "global.h"
 #include "consumer.h"
 
 // Programmer: Nathan Hodgson
 // Program: consumer.c
 
-void getWord(char word[], char hash[]) {
-	char variants[8][50];
+void checkWord(char word[], char hash[]) {
+	char* variants[8];
 	char checkWord[50], checkHash[65];
 	bool foundPass = false;
 
 	// [0]oil [1]0il [2]o!l [3]oi1 [4]0i1 [5]o!1 [6]0!l [7]0!1 
 
-	for (int i=0; i<8; i++) 
-		strcpy(variants[i], word);
+	for (int i=0; i<8; i++) {
+		variants[i] = (char*)malloc(strlen(word) * sizeof(char));
+		variants[i] = word;
+	}
 
 	for (int i=0; word[i] != '\0'; i++) {
 		if (word[i] == 'i') {
