@@ -4,7 +4,41 @@
 // Programmer: Nathan Hodgson
 // Program: consumer.c
 
-void checkWord(char word[], char hash[]) {
+void* getWord(void *buf) {
+	struct globalBuffer *ptr = (struct globalBuffer*) buf;
+	char word[50];
+
+	pthread_mutex_lock(&lock);
+
+	while (ptr->occupied <= 0) // Waits until global buffer is not empty
+		pthread_cond_wait(&more, &lock);
+
+	if (ptr->occupied <= 0) // Failsafe
+		exit(1);
+
+	while (ptr->occupied > 0) {
+		strcpy(word, ptr->buf[ptr->nextout]);
+		if (checkWord(word, ptr->passHash, buf)) {
+			printf("Found password: %s\n", ptr->password);
+			return NULL;
+		}
+		ptr->nextout++;
+
+		if (ptr->nextout == 10000)
+			ptr->nextout = 0;
+
+		ptr->occupied--;
+	}
+
+	pthread_cond_signal(&less);
+	pthread_mutex_unlock(&lock);
+	
+
+	return NULL;
+}
+
+bool checkWord(char word[], char hash[], void *buf) {
+	struct globalBuffer *ptr = (struct globalBuffer*) buf;
 	char* variants[8];
 	char checkWord[50], checkHash[65];
 	bool foundPass = false;
@@ -49,8 +83,10 @@ void checkWord(char word[], char hash[]) {
 		}
 	}
 
-	if (foundPass)
-		printf("Found the password! It is: %s\n", checkWord);
+	if (foundPass) {
+		ptr->foundPass = true;
+		strcpy(ptr->password, checkWord);
+	}
 
-	return;
+	return foundPass;
 }

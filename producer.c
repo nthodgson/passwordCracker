@@ -8,7 +8,7 @@
 void *readFile(void *buf) {
 	struct globalBuffer *ptr = (struct globalBuffer*) buf;
 	char* buffer[100];
-	int ret = 0, i = 0;
+	int i = 0;
 	char dictName[50];
 	strcpy(dictName, ptr->dictName);
 
@@ -26,18 +26,59 @@ void *readFile(void *buf) {
 		while (fscanf(infile, "%s", buffer[i]) == 1) {
 			i++;
 			if (i % 100 == 0) {
-				writeToBuffer(buffer, &buf);
+				writeToBuffer(buffer, 100, buf);
 				i = 0;
 			}
 		}
+		if (i > 0) // Sends last of buffer
+			writeToBuffer(buffer, i, buf);
 	}
 
 	fclose(infile);
+	return NULL;
 }
 
-void *writeToBuffer(char** buffer, void *buf) {
+void *writeToBuffer(char** buffer, int bufSize, void *buf) {
 	struct globalBuffer *ptr = (struct globalBuffer*) buf;
 
 	pthread_mutex_lock(&lock);
+
+	while (ptr->occupied >= 10000) // Waits until global buffer has space
+		pthread_cond_wait(&less, &lock);
+
+	if (ptr->occupied >= 10000) // Fallback check
+		exit(1);
+
+	for (int i=0; i<bufSize; i++) { // Adds items to the global buffer while it has space
+		ptr->buf[ptr->nextin] = buffer[i];
+		ptr->nextin++;
+		if (ptr->nextin == 10000)
+			ptr->nextin = 0;
+		ptr->occupied++;
+		while (ptr->occupied >= 10000)
+			pthread_cond_wait(&less, &lock);
+	}
+
+	pthread_cond_signal(&more);
+	pthread_mutex_unlock(&lock);
 	
+	return NULL;
+}
+
+void* readHash(char fileName[], void *buf) {
+	struct globalBuffer *ptr = (struct globalBuffer*) buf;
+
+	FILE* infile;
+	infile = fopen(fileName, "r");
+
+	if (infile == NULL) {
+		printf("Invalid file name... Please try again.\n");
+		exit(1);
+	}
+	else {
+		fscanf(infile, "%s", ptr->passHash);
+	}
+
+	fclose(infile);
+	return NULL;
 }

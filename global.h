@@ -24,7 +24,8 @@ pthread_cond_t less;
 
 struct globalBuffer {
     char* buf[10000];
-    char dictName[50];
+    char dictName[50], passHash[65], password[50];
+    bool foundPass;
     int occupied;
     int nextin;
     int nextout;

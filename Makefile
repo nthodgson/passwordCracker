@@ -1,5 +1,5 @@
 # This target compiles the program.
-CFLAGS=-c -Wall -Werror -g
+CFLAGS=-c -Wall -g
 
 all: pc
 

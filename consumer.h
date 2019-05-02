@@ -1,6 +1,3 @@
-#ifndef __GLOBAL_H_
-#define __GLOBAL_H_
-
 #ifndef __CONSUMER_H_
 #define __CONSUMER_H_
 
@@ -19,10 +16,7 @@
 
 // Consumer thread struct declaration
 
-struct consumerThread {
-
-};
-
-void checkWord(char word[], char hash[]);
+bool checkWord(char word[], char hash[], void *buf);
+void* getWord(void *buf);
 
 #endif

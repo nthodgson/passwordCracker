@@ -16,11 +16,8 @@
 
 // Producer thread struct declaration
 
-struct producerThread {
-
-};
-
 void *readFile(void *buf);
-void *writeToBuffer(char** buffer, void *buf);
+void *writeToBuffer(char** buffer, int bufSize, void *buf);
+void *readHash(char fileName[], void *buf);
 
 #endif
