@@ -1,3 +1,6 @@
+#ifndef __GLOBAL_H_
+#define __GLOBAL_H_
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -11,16 +14,20 @@
 // Programmer: Nathan Hodgson
 // Program: producer.h
 
+// Declare global thread variables
+
+pthread_mutex_t lock;
+pthread_cond_t more;
+pthread_cond_t less;
+
 // Declare global buffer struct
 
-//static int BSIZE = 1000;
-
 struct globalBuffer {
-    char buf[10000][50];
+    char* buf[10000];
+    char dictName[50];
     int occupied;
     int nextin;
     int nextout;
-    pthread_mutex_t mutex;
-    pthread_cond_t more;
-    pthread_cond_t less;
 };
+
+#endif
