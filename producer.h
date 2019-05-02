@@ -1,3 +1,6 @@
+#ifndef __PRODUCER_H_
+#define __PRODUCER_H_
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -17,5 +20,7 @@ struct producerThread {
 
 };
 
-void readFile(char dictName[], globalBuffer *b);
-void writeToBuffer(char buffer[100][50], globalBuffer *b);
+void *readFile(void *buf);
+void *writeToBuffer(char** buffer, void *buf);
+
+#endif
