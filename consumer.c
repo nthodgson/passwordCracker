@@ -4,53 +4,90 @@
 // Programmer: Nathan Hodgson
 // Program: consumer.c
 
-void* getWord(void *buf) {
+/*============================================================
+runConsumer(): This is the driver function for the consumer
+threads. It grabs words from the global buffer by calling
+getWord() and checks them with checkWord(). 
+============================================================*/
+void* runConsumer(void *buf) {
 	struct globalBuffer *ptr = (struct globalBuffer*) buf;
 	char word[50];
+	bool passFound = false;
 
-	pthread_mutex_lock(&lock);
-
-	while (ptr->occupied <= 0) // Waits until global buffer is not empty
-		pthread_cond_wait(&more, &lock);
-
-	if (ptr->occupied <= 0) // Failsafe
-		exit(1);
-
-	while (ptr->occupied > 0) {
-		strcpy(word, ptr->buf[ptr->nextout]);
-		if (checkWord(word, ptr->passHash, buf)) {
-			printf("Found password: %s\n", ptr->password);
+	while (!passFound) { // Will run until password found or end of file reached
+		getWord(buf, word);
+		if (ptr->endOfFile && ptr->occupied <= 0) {
+			pthread_cond_signal(&more); // Signal deadlocked consumers to exit
 			return NULL;
 		}
-		ptr->nextout++;
-
-		if (ptr->nextout == 10000)
-			ptr->nextout = 0;
-
-		ptr->occupied--;
-	}
-
-	pthread_cond_signal(&less);
-	pthread_mutex_unlock(&lock);
-	
+		else if (checkWord(word, ptr->passHash, buf)) {
+			passFound = true;
+			return NULL;
+		} 
+	}	
 
 	return NULL;
 }
 
+/*============================================================
+getWord(): Waits until the global buffer has words in it and 
+then stores it in the variable word which is passed by reference.
+============================================================*/
+void getWord(void *buf, char word[]) {
+	struct globalBuffer *ptr = (struct globalBuffer*) buf;
+
+	pthread_mutex_lock(&lock);
+
+	while (ptr->occupied <= 0) // Waits until global buffer is not empty
+		if (ptr->endOfFile) {
+			pthread_mutex_unlock(&lock);
+			return;
+		} 
+		else
+			pthread_cond_wait(&more, &lock);
+
+	if (ptr->endOfFile && ptr->occupied <= 0) { // Ensure all words have been checked
+		pthread_mutex_unlock(&lock);
+		return;
+	}
+
+	if (ptr->occupied <= 0) // Failsafe
+		exit(1);
+
+	strcpy(word, ptr->buf[ptr->nextout]);
+	ptr->nextout++;
+	ptr->nextout %= 10000;
+	ptr->occupied--;
+
+	pthread_cond_signal(&less); 
+	pthread_mutex_unlock(&lock);
+	
+	return; 
+}
+
+/*============================================================
+checkWord(): Given a word and the correct password hash, this
+function will check 88 different variations of the word's hash
+to see if it matches the correct password hash. If the password
+is found, this function will return true, else false. 
+============================================================*/
 bool checkWord(char word[], char hash[], void *buf) {
 	struct globalBuffer *ptr = (struct globalBuffer*) buf;
-	char* variants[8];
+	char** variants;
 	char checkWord[50], checkHash[65];
 	bool foundPass = false;
 
-	// [0]oil [1]0il [2]o!l [3]oi1 [4]0i1 [5]o!1 [6]0!l [7]0!1 
-
-	for (int i=0; i<8; i++) {
-		variants[i] = (char*)malloc(strlen(word) * sizeof(char));
-		variants[i] = word;
+	variants = (char**)malloc(8 * sizeof(char*));
+	for (int i=0; i<8; i++) { // Fills variants[] with word[]
+		variants[i] = (char*)malloc(50 * sizeof(char));
+		strcpy(variants[i], word);
 	}
 
-	for (int i=0; word[i] != '\0'; i++) {
+	// The following for loop will modify each variants[] index
+	// location as shown below (example word "oil" is used):
+	// [0]oil [1]0il [2]o!l [3]oi1 [4]0i1 [5]o!1 [6]0!l [7]0!1 
+
+	for (int i=0; word[i] != '\0'; i++) { 
 		if (word[i] == 'i') {
 			variants[2][i] = '!';
 			variants[5][i] = '!';
@@ -71,22 +108,29 @@ bool checkWord(char word[], char hash[], void *buf) {
 		}
 	}
 
-	for (int i=0; i<8 && !foundPass; i++) {
+	for (int i=0; i<8; i++) { // Compare the 88 variants with the password hash
 		sha_256_string(checkHash, variants[i], strlen(variants[i]));
-		if (strcmp(checkHash, hash) == 0) 
+		if (strcmp(checkHash, hash) == 0) {
+			ptr->foundPass = true;
+			strcpy(ptr->password, variants[i]);
 			foundPass = true;
-		for (int j=0; j<10 && !foundPass; j++) {
+			break;
+		}
+		for (int j=0; j<10; j++) {
 			sprintf(checkWord, "%s%d", variants[i], j);
 			sha_256_string(checkHash, checkWord, strlen(checkWord));
-			if (strcmp(checkHash, hash) == 0) 
+			if (strcmp(checkHash, hash) == 0) {
+				ptr->foundPass = true;
+				strcpy(ptr->password, checkWord);
 				foundPass = true;
+				break;
+			}
 		}
 	}
 
-	if (foundPass) {
-		ptr->foundPass = true;
-		strcpy(ptr->password, checkWord);
-	}
+	for (int i=0; i<8; i++) // Free dynamic memory
+		free(variants[i]);
+	free(variants);
 
 	return foundPass;
 }
