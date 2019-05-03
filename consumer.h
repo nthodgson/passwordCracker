@@ -14,9 +14,10 @@
 // Programmer: Nathan Hodgson
 // Program: consumer.h
 
-// Consumer thread struct declaration
+// Consumer thread function declaration
 
 bool checkWord(char word[], char hash[], void *buf);
-void* getWord(void *buf);
+void* runConsumer(void *buf);
+void getWord(void *buf, char word[]);
 
 #endif

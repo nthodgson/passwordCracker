@@ -14,10 +14,11 @@
 // Programmer: Nathan Hodgson
 // Program: producer.h
 
-// Producer thread struct declaration
+// Producer thread function declaration
 
 void *readFile(void *buf);
 void *writeToBuffer(char** buffer, int bufSize, void *buf);
 void *readHash(char fileName[], void *buf);
+void writeFile(void *buf, char outputName[]);
 
 #endif
