@@ -31,6 +31,8 @@ void *readFile(void *buf) {
 	else {
 		while (fscanf(infile, "%s", buffer[i]) == 1) { // Read dictionary
 			i++;
+			if (ptr->foundPass) // If the password has been found, terminate
+				return NULL;
 			if (i % 100 == 0) {
 				writeToBuffer(buffer, 100, buf);
 				i = 0;
