@@ -26,6 +26,9 @@ runSmall:
 runTiny:
 	./pc tinyDict.txt input.txt output.txt 5
 
+runMed:
+	./pc medDict.txt input.txt output.txt 5
+
 runFull:
 	./pc fullDict.txt input.txt output.txt 5
 
