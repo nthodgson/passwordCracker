@@ -12,16 +12,15 @@ getWord() and checks them with checkWord().
 void* runConsumer(void *buf) {
 	struct globalBuffer *ptr = (struct globalBuffer*) buf;
 	char word[50];
-	bool passFound = false;
 
-	while (!passFound) { // Will run until password found or end of file reached
+	while (!ptr->foundPass) { // Will run until password found or end of file reached
 		getWord(buf, word);
 		if (ptr->endOfFile && ptr->occupied <= 0) {
-			pthread_cond_signal(&more); // Signal deadlocked consumers to exit
 			return NULL;
 		}
 		else if (checkWord(word, ptr->passHash, buf)) {
-			passFound = true;
+			pthread_cond_broadcast(&more);
+			pthread_cond_broadcast(&less);
 			return NULL;
 		} 
 	}	
@@ -38,13 +37,18 @@ void getWord(void *buf, char word[]) {
 
 	pthread_mutex_lock(&lock);
 
-	while (ptr->occupied <= 0) // Waits until global buffer is not empty
+	while (ptr->occupied <= 0 && !ptr->foundPass) // Waits until global buffer is not empty
 		if (ptr->endOfFile) {
 			pthread_mutex_unlock(&lock);
 			return;
 		} 
 		else
 			pthread_cond_wait(&more, &lock);
+
+	if (ptr->foundPass) {
+		pthread_mutex_unlock(&lock);
+		pthread_exit(NULL);
+	}
 
 	if (ptr->endOfFile && ptr->occupied <= 0) { // Ensure all words have been checked
 		pthread_mutex_unlock(&lock);
@@ -53,6 +57,12 @@ void getWord(void *buf, char word[]) {
 
 	if (ptr->occupied <= 0) // Failsafe
 		exit(1);
+
+	// printf("---------------------------\n");
+	// printf("Occupied: %d\n", ptr->occupied);
+	// printf("Nextin: %d\n", ptr->nextin);
+	// printf("Nextout: %d\n", ptr->nextout);
+	// printf("---------------------------\n");
 
 	strcpy(word, ptr->buf[ptr->nextout]);
 	ptr->nextout++;

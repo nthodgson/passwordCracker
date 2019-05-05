@@ -31,9 +31,13 @@ void *readFile(void *buf) {
 	else {
 		while (fscanf(infile, "%s", buffer[i]) == 1) { // Read dictionary
 			i++;
-			if (ptr->foundPass) // If the password has been found, terminate
+			if (ptr->foundPass) { // If the password has been found, terminate
+				for (int i=0; i<100; i++) // Free dynamic memory
+					free(buffer[i]);
+				fclose(infile);
 				return NULL;
-			if (i % 100 == 0) {
+			}
+			else if (i % 100 == 0) {
 				writeToBuffer(buffer, 100, buf);
 				i = 0;
 			}
@@ -58,10 +62,14 @@ void *writeToBuffer(char** buffer, int bufSize, void *buf) {
 
 	pthread_mutex_lock(&lock);
 
-	while (ptr->occupied >= 10000) // Waits until global buffer has space
+	while (ptr->occupied > 9900 && !ptr->foundPass) {// Waits until global buffer has space
 		pthread_cond_wait(&less, &lock);
+	}
 
-	if (ptr->occupied >= 10000) // Fallback check
+	if (ptr->foundPass)
+		return NULL;
+
+	if (ptr->occupied > 9900) // Fallback check
 		exit(1);
 
 	for (int i=0; i<bufSize; i++) { // Adds items to the global buffer while it has space
@@ -69,14 +77,12 @@ void *writeToBuffer(char** buffer, int bufSize, void *buf) {
 		ptr->nextin++;
 		ptr->nextin %= 10000;
 		ptr->occupied++;
-		while (ptr->occupied >= 10000)
-			pthread_cond_wait(&less, &lock);
 	}
 
 	if (bufSize < 100) // Signal end of file
 		ptr->endOfFile = true;
 
-	pthread_cond_signal(&more);
+	pthread_cond_broadcast(&more);
 	pthread_mutex_unlock(&lock);
 	
 	return NULL;
