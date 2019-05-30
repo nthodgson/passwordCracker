@@ -16,7 +16,10 @@ Given a hashed password, this program uses multithreading to brute force hundred
 ### Compilation Specifications
 
 The following command line argument compiles the program:
-- gcc main.c -lpthread -o main -g
+
+```shell
+gcc main.c -lpthread -o main -g
+```
 
 ### Execution Specifications
 
@@ -28,7 +31,9 @@ Run main with the following command line arguments:
 
 ### Sample Command Line Arguments
 
-- ./main dictionary.txt input.txt output.txt 5
+```shell
+./main dictionary.txt input.txt output.txt 5
+```
 
 ### Output
 
