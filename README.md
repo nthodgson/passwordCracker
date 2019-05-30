@@ -18,7 +18,7 @@ Given a hashed password, this program uses multithreading to brute force hundred
 The following command line argument compiles the program:
 
 ```shell
-gcc main.c -lpthread -o main -g
+make all
 ```
 
 ### Execution Specifications
@@ -32,9 +32,21 @@ Run main with the following command line arguments:
 ### Sample Command Line Arguments
 
 ```shell
-./main dictionary.txt input.txt output.txt 5
+./pc smallDict.txt input.txt output.txt 5
+```
+
+This also does the same thing: 
+
+```shell
+make runSmall
 ```
 
 ### Output
 
 - Output file containing the password
+
+### Cleaning Up Execution Files
+
+```shell
+make clean
+```
